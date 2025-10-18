@@ -1,0 +1,44 @@
+name: Publicar Jogo de Blackjack no GitHub Pages
+
+on:
+  push:
+    branches:
+      - master # O branch principal do seu repositório é 'master'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "github-pages"
+  cancel-in-progress: true
+
+jobs:
+  # O job 'build' é mais simples aqui, pois não há uma "compilação" complexa.
+  # Apenas preparamos os arquivos para upload.
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar GitHub Pages
+        # Esta ação configura o ambiente para o deploy do GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload dos arquivos para o artefato
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: . # Publica todo o conteúdo da raiz do repositório (index.html, src/, etc.)
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build # Garante que o deploy só rode após o build/upload
+    steps:
+      - name: Deploy no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
